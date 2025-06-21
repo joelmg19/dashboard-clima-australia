@@ -4,19 +4,19 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import joblib
 
-# Configurar la página
-st.set_page_config(page_title="Predicción de Lluvia", layout="wide")
-
 # Cargar el modelo entrenado
 modelo = joblib.load('modelo_dashboard.pkl')
 
-# Crear columnas (principal y visualización)
-col1, col2 = st.columns([2, 1])
+# Configurar página con ancho expandido
+st.set_page_config(page_title="Predicción de Lluvia", layout="wide")
 
-# Panel de entrada y predicción
+# Crear dos columnas: izquierda (formulario) y derecha (visualizaciones)
+col1, col2 = st.columns([1.2, 1])
+
+# ----- COLUMNA 1: Formulario e inferencia -----
 with col1:
     st.title("🌦️ Predicción de Lluvia para Mañana")
-    st.markdown("Este panel utiliza condiciones meteorológicas actuales para predecir si lloverá al día siguiente.")
+    st.markdown("Este panel utiliza condiciones climáticas actuales para predecir si lloverá al día siguiente.")
 
     st.header("🛠️ Ajusta las condiciones del clima")
     humedad = st.slider("Humedad a las 3PM (%)", 0, 100, 65)
@@ -34,40 +34,36 @@ with col1:
 
     st.subheader("🌤️ Resultado de la predicción:")
     if prediccion == 1:
-        st.success("🌧️ **Sí lloverá mañana**")
+        st.success("🌧️ *Sí lloverá mañana*")
     else:
-        st.info("🌤️ **No lloverá mañana**")
+        st.info("🌤️ *No lloverá mañana*")
 
-    st.write(f"📊 Probabilidad estimada de lluvia: **{probabilidad:.2%}**")
+    st.write(f"📊 Probabilidad estimada de lluvia: *{probabilidad:.2%}*")
 
-# Visualizaciones inspiradas en tu presentación
+# ----- COLUMNA 2: Visualización basada en inputs -----
 with col2:
-    st.markdown("### 📈 Visualizaciones del clima")
+    st.markdown("### 📈 Visualización de condiciones ingresadas")
 
-    # Gráfico de torta: distribución de predicciones históricas simuladas
-    st.markdown("**Distribución de días con y sin lluvia**")
-    labels = ['Sin lluvia', 'Con lluvia']
-    values = [70, 30]
-    fig1, ax1 = plt.subplots()
-    ax1.pie(values, labels=labels, autopct='%1.1f%%', startangle=90)
-    ax1.axis('equal')
+    # Gráfico de barras horizontal con valores ingresados
+    df_condiciones = pd.DataFrame({
+        'Variable': ['Humedad', 'Presión', 'Nubosidad', 'Horas de Sol', 'Viento'],
+        'Valor': [humedad, presion, nubes, sol, viento]
+    })
+
+    fig1, ax1 = plt.subplots(figsize=(5, 3.5))
+    ax1.barh(df_condiciones['Variable'], df_condiciones['Valor'], color='#4C72B0')
+    ax1.set_xlabel('Valor')
+    ax1.set_title('📊 Condiciones meteorológicas actuales')
     st.pyplot(fig1)
 
-    # Gráfico de barras: comparación de humedad por cluster
-    st.markdown("**Comparación de humedad por tipo de día**")
-    fig2, ax2 = plt.subplots()
-    tipos = ['Soleado', 'Nublado', 'Lluvioso']
-    humedades = [45, 65, 85]
-    ax2.bar(tipos, humedades, color=['#FEE08B', '#91BFDB', '#4575B4'])
-    ax2.set_ylabel('% Humedad')
-    st.pyplot(fig2)
+    # Gráfico de línea con tendencia hipotética (probabilidad semanal)
+    st.markdown("### 📉 Comparación con tendencia simulada")
+    dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Hoy']
+    prob_tendencia = [0.3, 0.4, 0.25, 0.55, 0.6, 0.35, probabilidad]
 
-    # Gráfico de líneas: probabilidad de lluvia en la semana (simulado)
-    st.markdown("**Tendencia semanal simulada**")
-    dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
-    probs = [0.2, 0.4, 0.65, 0.85, 0.6, 0.35, 0.15]
-    fig3, ax3 = plt.subplots()
-    ax3.plot(dias, probs, marker='o', color='green')
-    ax3.set_ylim(0, 1)
-    ax3.set_ylabel('Prob. de lluvia')
-    st.pyplot(fig3)
+    fig2, ax2 = plt.subplots(figsize=(5, 3))
+    ax2.plot(dias, prob_tendencia, marker='o', color='#55A868')
+    ax2.set_ylim(0, 1)
+    ax2.set_ylabel('Probabilidad de lluvia')
+    ax2.set_title('📈 Tendencia semanal simulada')
+    st.pyplot(fig2)
